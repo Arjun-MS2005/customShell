@@ -7,6 +7,15 @@
 #define MAXCOMMANDSIZE 100
 #define MAXARGS 100
 
+
+/* 
+    TODO :
+    1. Add built in command
+    2. Add command history
+    3. Enable Pipes 
+    4. Enable redirection
+*/
+
 void parseCommand(char *command, char *args[]) {
     int i = 0;
     char *token = strtok(command, " ");
