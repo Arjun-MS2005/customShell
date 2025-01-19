@@ -64,6 +64,9 @@ void executeCommand(char *args[] , char * history[] , int * storedcommands ) {
     else if(strcmp(args[0] , "dsphist")==0){
         displayhistory(history , storedcommands);
     }
+    else if (strcmp(args[0] , "clearhist") == 0){
+        clearhist(history , storedcommands);
+    }
     else{
         pid_t pid = fork();
         if (pid > 0) {
@@ -98,10 +101,21 @@ void storecommands(char *command, char *history[], int *storedcommands) {
 
 void displayhistory(char * history[] , int *storedcommands){
     for(int i = 0 ; i < *storedcommands ; i++){
-        printf("%d.%s\n" , i , history[i]);
+        printf("%d.%s\n" , i+1, history[i]);
     }
 }
 
+
+void clearhist(char * history[] , int *storedcommands){
+    for (int i = 0 ; i < *storedcommands ; i ++){
+        if(history[i] != NULL){
+            free(history[i]);
+            history[i] = NULL;
+        }
+    }
+    *storedcommands = 0;
+    printf("history is cleared\n");
+}
 
 void trimWhitespace(char *str) {  // Function to trim leading and trailing whitespaces
     int start = 0, end = strlen(str) - 1;
