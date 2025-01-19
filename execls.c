@@ -6,7 +6,7 @@
 
 #define MAXCOMMANDSIZE 100
 #define MAXARGS 100
-
+#define MAXCOMMANDS 10
 
 /* 
     TODO :
@@ -57,9 +57,12 @@ void executecd(char *args[]) {
 
 
 
-void executeCommand(char *args[]) {
+void executeCommand(char *args[] , char * history[] , int * storedcommands ) {
     if(strcmp(args[0],"cd") == 0){
         executecd(args);
+    }
+    else if(strcmp(args[0] , "dsphist")==0){
+        displayhistory(history , storedcommands);
     }
     else{
         pid_t pid = fork();
@@ -77,6 +80,28 @@ void executeCommand(char *args[]) {
         }
     }
 }
+
+void storecommands(char *command, char *history[], int *storedcommands) {
+    // If history is full, shift the commands to make space
+    if (*storedcommands == MAXCOMMANDS) {
+        free(history[0]); // Free the memory for the oldest command
+        for (int i = 1; i < MAXCOMMANDS; i++) {
+            history[i - 1] = history[i]; // Shift the commands down
+        }
+        *storedcommands = MAXCOMMANDS - 1; // Adjust the count after shifting
+    }
+
+    // Allocate memory for the new command and store it
+    history[*storedcommands] = strdup(command);
+    (*storedcommands)++; // Increment the number of stored commands
+}
+
+void displayhistory(char * history[] , int *storedcommands){
+    for(int i = 0 ; i < *storedcommands ; i++){
+        printf("%d.%s\n" , i , history[i]);
+    }
+}
+
 
 void trimWhitespace(char *str) {  // Function to trim leading and trailing whitespaces
     int start = 0, end = strlen(str) - 1;
@@ -100,6 +125,8 @@ int main() {
     char command[MAXCOMMANDSIZE];
     char *args[MAXARGS];
     char *commands[MAXARGS];
+    char *history[MAXCOMMANDS];
+    int storedcommands = 0;
 
     printf("WELCOME TO MY COMMAND LINE\n");
     while (flag) {
@@ -117,6 +144,9 @@ int main() {
         trimWhitespace(command);  // Trim leading and trailing spaces
 
         if (strcmp(command, "exit") == 0) {
+            for (int i = 0; i < storedcommands; i++) {
+                free(history[i]);
+            }       
             printf("Thank you for trying this out!\n");
             flag = 0;
         } else {
@@ -125,7 +155,8 @@ int main() {
             while (commands[i] != NULL) {
                 trimWhitespace(commands[i]);  // Trim each individual command
                 parseCommand(commands[i], args);  // Parse command into args
-                executeCommand(args);  // Execute the command
+                storecommands(commands[i] , history , &storedcommands); //store commands
+                executeCommand(args , history , &storedcommands);  // Execute the command
                 i++;
             }
         }
