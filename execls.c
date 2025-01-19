@@ -36,19 +36,45 @@ void splitMultipleCommands(char *command, char *commands[]) {
     commands[i] = NULL;  // Null terminate the commands
 }
 
+void executecd(char *args[]) {
+    char *home = getenv("HOME");
+    if (home == NULL) {
+        home = "/";
+    }
+    
+    if (args[1] == NULL) {
+        if (chdir(home) == -1) {
+            perror("Directory does not exist\n");
+        }
+    }
+    else {
+        if (chdir(args[1]) == -1) {
+            perror("Directory does not exist\n");
+        }
+    }
+}
+
+
+
+
 void executeCommand(char *args[]) {
-    pid_t pid = fork();
-    if (pid > 0) {
-        printf("Executing Command...\n");
-        wait(NULL);  // Wait for the child process to complete
-    } else if (pid == 0) {
-        printf("Child process running...\n");
-        execvp(args[0], args);  // Execute the command
-        perror("execvp failed");
-        exit(EXIT_FAILURE);
-    } else {
-        perror("fork failed");
-        exit(EXIT_FAILURE);
+    if(strcmp(args[0],"cd") == 0){
+        executecd(args);
+    }
+    else{
+        pid_t pid = fork();
+        if (pid > 0) {
+            printf("Executing Command...\n");
+            wait(NULL);  // Wait for the child process to complete
+        } else if (pid == 0) {
+            printf("Child process running...\n");
+            execvp(args[0], args);  // Execute the command
+            perror("execvp failed");
+            exit(EXIT_FAILURE);
+        } else {
+            perror("fork failed");
+            exit(EXIT_FAILURE);
+        }
     }
 }
 
